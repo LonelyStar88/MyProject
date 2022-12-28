@@ -9,21 +9,36 @@ public class Player : MonoBehaviour
 {
     [SerializeField]private Transform cameraTrans;
     [SerializeField]private Animator animator;
-
+    [SerializeField] private Image HPbarImage;
+    [SerializeField] private TMP_Text HPTxt;
+    [SerializeField] private TMP_Text DamageTxt;
+    float CurHP = 0;
+    float MaxHP = 100;
     float speed = 3f;
+    public float damage
+    {
+        get; set;
+    }
     //bool isIdle;
     //bool isMove;
     bool isside;
     bool isdown;
     bool isup;
 
+    void Awake()
+    {
+        CurHP = MaxHP;
+    }
     // Start is called before the first frame update
     void Start()
     {
         isside = false;
         isdown = true;
         isup = false;
-        
+        damage = 10f;
+        //MaxHP = 100;
+        //CurHP = MaxHP;
+        HPTxt.text = string.Format($"{0}/{1}", CurHP, MaxHP);
     }
 
     // Update is called once per frame
@@ -90,7 +105,11 @@ public class Player : MonoBehaviour
         {
             StartCoroutine("Attack");
         }
-       
+
+        //HPÇ¥½Ã
+        HPbarImage.fillAmount = CurHP / MaxHP;
+        HPTxt.text = string.Format($"{0}/{1}", CurHP, MaxHP);
+
     }
 
     public void Animation(string aniName)
@@ -130,5 +149,31 @@ public class Player : MonoBehaviour
             }
         }
 
+    }
+    IEnumerator PlayerDamaged()
+    {
+        transform.GetChild(5).GetChild(0).gameObject.SetActive(true);
+        yield return new WaitForSeconds(0.5f);
+        transform.GetChild(5).GetChild(0).gameObject.SetActive(false);
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.GetComponent<Enemy>().isAttack)
+        {
+            DamageTxt.text = collision.GetComponent<Enemy>().EnemyDamage.ToString();
+            StartCoroutine("PlayerDamaged");
+            CurHP -= collision.GetComponent<Enemy>().EnemyDamage;
+            collision.GetComponent<Enemy>().isAttack = false;
+        }
+    }
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        if (collision.GetComponent<Enemy>().isAttack)
+        {
+            DamageTxt.text = collision.GetComponent<Enemy>().EnemyDamage.ToString();
+            StartCoroutine("PlayerDamaged");
+            CurHP -= collision.GetComponent<Enemy>().EnemyDamage;
+            collision.GetComponent<Enemy>().isAttack = false;
+        }
     }
 }
