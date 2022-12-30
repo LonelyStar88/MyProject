@@ -12,9 +12,10 @@ public class Player : MonoBehaviour
     [SerializeField] private Image HPbarImage;
     [SerializeField] private TMP_Text HPTxt;
     [SerializeField] private TMP_Text DamageTxt;
-    float CurHP = 0;
-    float MaxHP = 100;
+    float CurHP;
+    float MaxHP;
     float speed = 3f;
+    public bool isAttack;
     public float damage
     {
         get; set;
@@ -27,7 +28,9 @@ public class Player : MonoBehaviour
 
     void Awake()
     {
+        MaxHP = 100f;
         CurHP = MaxHP;
+        isAttack = false;
     }
     // Start is called before the first frame update
     void Start()
@@ -38,7 +41,7 @@ public class Player : MonoBehaviour
         damage = 10f;
         //MaxHP = 100;
         //CurHP = MaxHP;
-        HPTxt.text = string.Format($"{0}/{1}", CurHP, MaxHP);
+        HPTxt.text = string.Format("{0}/{1}", CurHP, MaxHP);
     }
 
     // Update is called once per frame
@@ -107,11 +110,27 @@ public class Player : MonoBehaviour
         }
 
         //HPÇ¥½Ã
-        HPbarImage.fillAmount = CurHP / MaxHP;
-        HPTxt.text = string.Format($"{0}/{1}", CurHP, MaxHP);
+        if (CurHP > 0)
+        {
+            HPbarImage.fillAmount = CurHP / MaxHP;
+            HPTxt.text = string.Format("{0}/{1}", CurHP, MaxHP);
+        }
+        
+        //Á×À½
+        if(CurHP <= 0)
+        {
+            CurHP = 0;
+            Die();
+            return;
+        }
 
     }
 
+    public void Die()
+    {
+        transform.GetChild(0).gameObject.SetActive(false);
+        transform.GetChild(4).gameObject.SetActive(true);
+    }
     public void Animation(string aniName)
     {
         animator.SetTrigger(aniName);
@@ -122,58 +141,65 @@ public class Player : MonoBehaviour
         {
             transform.GetChild(0).gameObject.SetActive(false);
             transform.GetChild(1).gameObject.SetActive(true);
+            isAttack = true;
             yield return new WaitForSeconds(0.5f);
             {
                 transform.GetChild(1).gameObject.SetActive(false);
                 transform.GetChild(0).gameObject.SetActive(true);
+                isAttack = false;
             }
         }
         if(isup)
         {
             transform.GetChild(0).gameObject.SetActive(false);
             transform.GetChild(2).gameObject.SetActive(true);
+            isAttack = true;
             yield return new WaitForSeconds(0.5f);
             {
                 transform.GetChild(2).gameObject.SetActive(false);
                 transform.GetChild(0).gameObject.SetActive(true);
+                isAttack = false;
             }
         }
         if(isside)
         {
             transform.GetChild(0).gameObject.SetActive(false);
             transform.GetChild(3).gameObject.SetActive(true);
+            isAttack = true;
             yield return new WaitForSeconds(0.5f);
             {
                 transform.GetChild(3).gameObject.SetActive(false);
                 transform.GetChild(0).gameObject.SetActive(true);
+                isAttack = false;
             }
         }
 
     }
     IEnumerator PlayerDamaged()
     {
-        transform.GetChild(5).GetChild(0).gameObject.SetActive(true);
+        transform.GetChild(6).GetChild(0).gameObject.SetActive(true);
         yield return new WaitForSeconds(0.5f);
-        transform.GetChild(5).GetChild(0).gameObject.SetActive(false);
+        transform.GetChild(6).GetChild(0).gameObject.SetActive(false);
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.GetComponent<Enemy>().isAttack)
+        if (collision.tag.Equals("Enemy"))
         {
-            DamageTxt.text = collision.GetComponent<Enemy>().EnemyDamage.ToString();
-            StartCoroutine("PlayerDamaged");
-            CurHP -= collision.GetComponent<Enemy>().EnemyDamage;
-            collision.GetComponent<Enemy>().isAttack = false;
+            if (!isAttack)
+            {
+                Debug.Log("Damaged!");
+                StartCoroutine("PlayerDamaged");
+                if (CurHP > 0)
+                {
+                    CurHP -= 10f;
+                }
+                else
+                {
+                    CurHP = 0;
+                }
+            }
+
         }
     }
-    private void OnTriggerStay2D(Collider2D collision)
-    {
-        if (collision.GetComponent<Enemy>().isAttack)
-        {
-            DamageTxt.text = collision.GetComponent<Enemy>().EnemyDamage.ToString();
-            StartCoroutine("PlayerDamaged");
-            CurHP -= collision.GetComponent<Enemy>().EnemyDamage;
-            collision.GetComponent<Enemy>().isAttack = false;
-        }
-    }
+  
 }

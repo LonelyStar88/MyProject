@@ -18,4 +18,6 @@ public class SceneChange : MonoBehaviour
     {
         SceneManager.LoadScene(sceneName);
     }
+
+    //GameOver시 AddActive 를 실행한다.
 }
